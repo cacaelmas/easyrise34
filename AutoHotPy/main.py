@@ -224,8 +224,11 @@ def checkMana(autohotpy):
     global MP_R, MP_G, MP_B
     x, y = SELF_MP_X, SELF_MP_Y
     r, g, b = readPixel(x,y)
-    print("Checking mana with RGB: {}, {}, {}".format(r,g,b))
-    if r != MP_R and g != MP_G and b != MP_B:
+    print("Checking mana with RGB: {}, {}, {} against {}, {}, {}".format(r,g,b, MP_R, MP_G, MP_B))
+    if r == MP_R and g == MP_G and b == MP_B:
+        print("MP is above 35%")
+    else:
+        print("Using MP with KEY {}".format(MANA_POT_KEY))
         useSkill(autohotpy, MANA_POT_KEY)
 
 
@@ -233,8 +236,11 @@ def checkHealth(autohotpy):
     global HP_R, HP_G, HP_B
     x, y = SELF_HP_X, SELF_HP_Y
     r, g, b = readPixel(x, y)
-    print("Checking health with RGB: {}, {}, {}".format(r,g,b))
-    if r != HP_R and g != HP_B and b != HP_B:
+    print("Checking health with RGB: {}, {}, {} against {}, {}, {}".format(r,g,b, HP_R, HP_G, HP_B))
+    if r == HP_R and g == HP_G and b == HP_B:
+        print("HP is above 40%")
+    else:
+        print("Using HP with KEY {}".format(HEALING_POT_KEY))
         useSkill(autohotpy, HEALING_POT_KEY)
 
 
