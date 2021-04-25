@@ -27,8 +27,8 @@ ENABLE_R_HITS = False  # Change it to True for basic attacks
 SELF_HP_X = 165
 SELF_HP_Y = 35
 
-SELF_MP_X = 142
-SELF_MP_Y = 60
+SELF_MP_X = 134
+SELF_MP_Y = 61
 
 FIRST_PARTY_MEMBER_X = 1799
 FIRST_PARTY_MEMBER_Y = 258
@@ -105,8 +105,8 @@ def alwaysLoopMacro(autohotpy, event):
 def enableDisableLoopMacro(autohotpy, event):
     global repeat_always
     global HP_R, HP_G, HP_B, MP_R, MP_G, MP_B
-    HP_R, HP_G, HP_B = readPixel(165, 35)
-    MP_R, MP_G, MP_B = readPixel(134, 61)
+    HP_R, HP_G, HP_B = readPixel(SELF_HP_X, SELF_HP_Y)
+    MP_R, MP_G, MP_B = readPixel(SELF_MP_X, SELF_MP_Y)
     print("Recorded HP values -> RGB: {}, {}, {}".format(HP_R, HP_G, HP_B))
     print("Recorded MP values -> RGB: {}, {}, {}".format(MP_R, MP_G, MP_B))
     if repeat_always:
