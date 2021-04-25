@@ -61,6 +61,7 @@ def alwaysLoopMacro(autohotpy, event):
     """
     #    1: Archer 2: Asas 3: Warrior 4: Mage 5: Priest Heal 6: Only auto hp/mp
     # useAttackConfiguration(autohotpy)
+    global TIME_DELAY_BETWEEN_SKILLS
     if SELECTED_RUNTIME_CONFIGURATION == 1:
         # Archer
         TIME_DELAY_BETWEEN_SKILLS = 1
@@ -131,6 +132,7 @@ def priestHeal(autohotpy):
 
 
 def useAttackConfiguration(autohotpy):
+    global TIME_DELAY_BETWEEN_SKILLS
     for skillPage, skillArray in ACTIVE_SKILL_PAGES.items():
         useSkill(autohotpy, skillPage)
         for i in range(0, len(skillArray)):
