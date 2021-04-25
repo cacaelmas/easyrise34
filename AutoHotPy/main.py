@@ -43,6 +43,13 @@ repeat_always = False
 SELECTED_RUNTIME_CONFIGURATION = 0  # None
 TIME_DELAY_BETWEEN_SKILLS = 1 # in seconds
 
+HP_R = 0
+HP_G = 0
+HP_B = 0
+MP_R = 0
+MP_G = 0
+MP_B = 0
+
 ## END CONFIGURATION
 
 
@@ -97,7 +104,11 @@ def alwaysLoopMacro(autohotpy, event):
 
 def enableDisableLoopMacro(autohotpy, event):
     global repeat_always
-
+    global HP_R, HP_G, HP_B, MP_R, MP_G, MP_B
+    HP_R, HP_G, HP_B = readPixel(165, 35)
+    MP_R, MP_G, MP_B = readPixel(134, 61)
+    print("Recorded HP values -> RGB: {}, {}, {}".format(HP_R, HP_G, HP_B))
+    print("Recorded MP values -> RGB: {}, {}, {}".format(MP_R, MP_G, MP_B))
     if repeat_always:
         repeat_always = False
     else:
@@ -210,16 +221,20 @@ def readPixel(x, y):
 
 
 def checkMana(autohotpy):
+    global MP_R, MP_G, MP_B
     x, y = SELF_MP_X, SELF_MP_Y
     r, g, b = readPixel(x,y)
-    if r > 60:
+    print("Checking mana with RGB: {}, {}, {}".format(r,g,b))
+    if r != MP_R and g != MP_G and b != MP_B:
         useSkill(autohotpy, MANA_POT_KEY)
 
 
 def checkHealth(autohotpy):
+    global HP_R, HP_G, HP_B
     x, y = SELF_HP_X, SELF_HP_Y
     r, g, b = readPixel(x, y)
-    if r < 75:
+    print("Checking health with RGB: {}, {}, {}".format(r,g,b))
+    if r != HP_R and g != HP_B and b != HP_B:
         useSkill(autohotpy, HEALING_POT_KEY)
 
 
