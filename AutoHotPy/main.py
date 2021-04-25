@@ -64,23 +64,23 @@ def alwaysLoopMacro(autohotpy, event):
     global TIME_DELAY_BETWEEN_SKILLS
     if SELECTED_RUNTIME_CONFIGURATION == 1:
         # Archer
-        TIME_DELAY_BETWEEN_SKILLS = 1
+        TIME_DELAY_BETWEEN_SKILLS = 0.7
         useAttackConfiguration(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 2:
         # Asas
-        TIME_DELAY_BETWEEN_SKILLS = 1.8
+        TIME_DELAY_BETWEEN_SKILLS = 0.4
         useAttackConfiguration(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 3:
         # Warrior
-        TIME_DELAY_BETWEEN_SKILLS = 1.2
+        TIME_DELAY_BETWEEN_SKILLS = 0.4
         useAttackConfiguration(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 4:
         # Mage
-        TIME_DELAY_BETWEEN_SKILLS = 2.4
+        TIME_DELAY_BETWEEN_SKILLS = 1.4
         useAttackConfiguration(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 5:
         # Priest Heal
-        TIME_DELAY_BETWEEN_SKILLS = 3.2
+        TIME_DELAY_BETWEEN_SKILLS = 1.4
         priestHeal(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 6:
         checkHealth(autohotpy)
@@ -139,7 +139,7 @@ def useAttackConfiguration(autohotpy):
             useSkill(autohotpy, 'z')
             useSkill(autohotpy, skillArray[i])
             if ENABLE_R_HITS:
-                time.sleep(0.5)
+                time.sleep(0.1)
                 useSkill(autohotpy, 'r')
             time.sleep(TIME_DELAY_BETWEEN_SKILLS)
 
@@ -200,6 +200,10 @@ def useSkill(autohotpy, key):
 
 
 def readPixel(x, y):
+    if x >= 1920:
+        x = 1919
+    if y >= 1080:
+        y = 1079
     color = win32gui.GetPixel(win32gui.GetDC(win32gui.GetActiveWindow()), x, y)
     r, g, b = rgbint2rgbtuple(color)
     return r, g, b
@@ -207,16 +211,14 @@ def readPixel(x, y):
 
 def checkMana(autohotpy):
     x, y = SELF_MP_X, SELF_MP_Y
-    color = win32gui.GetPixel(win32gui.GetDC(win32gui.GetActiveWindow()), x, y)
-    r, g, b = rgbint2rgbtuple(color)
+    r, g, b = readPixel(x,y)
     if r > 60:
         useSkill(autohotpy, MANA_POT_KEY)
 
 
 def checkHealth(autohotpy):
     x, y = SELF_HP_X, SELF_HP_Y
-    color = win32gui.GetPixel(win32gui.GetDC(win32gui.GetActiveWindow()), x, y)
-    r, g, b = rgbint2rgbtuple(color)
+    r, g, b = readPixel(x, y)
     if r < 75:
         useSkill(autohotpy, HEALING_POT_KEY)
 
@@ -242,7 +244,7 @@ def rgbint2rgbtuple(RGBint):
 
 ### Pre-configuration
 def displayOptions():
-    return input("1: Archer\n2: Asas\n3: Warrior\n4: Mage\n5: Priest Heal\n6: Only auto hp/mp")
+    return int(input("1: Archer\n2: Asas\n3: Warrior\n4: Mage\n5: Priest Heal\n6: Only auto hp/mp"))
 
 
 ### END Pre-configuration
