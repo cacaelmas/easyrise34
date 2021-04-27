@@ -3,15 +3,16 @@ from InterceptionWrapper import *
 import win32gui
 import time
 
-### CONFIGURATION
+# CONFIGURATION
 HEALING_POT_KEY = 0  # Change accordingly
 MANA_POT_KEY = 9  # Change accordingly
 HEAL_PARTY_MEMBER_KEY = 2  # Change accordingly
+start_time=0
 
 # Available pages -> F1, F2, F3, F4, F5, F6, F7
 ACTIVE_SKILL_PAGES = {
-    'F1': [3, 4, 5, 6],  # Change accordingly
-    'F2': [3, 4, 5, 6]  # Change accordingly
+    #'F4': [1,2,3,4,5]  # Change accordingly
+    'F1':[2]
 }
 
 # Be careful not to overlap any skills with your HEAL/MANA pot keys
@@ -21,14 +22,17 @@ ACTIVE_SKILL_PAGES = {
 #     'F4': [3, 4, 5, 6]
 # }
 
-ENABLE_R_HITS = False  # Change it to True for basic attacks
+ENABLE_R_HITS = True  # Change it to True for basic attacks
 
 # Do not change anything below this line
-SELF_HP_X = 165
-SELF_HP_Y = 35
+SELF_HP_X = 195
+SELF_HP_Y = 46
 
-SELF_MP_X = 134
-SELF_MP_Y = 61
+SELF_MP_X = 180
+SELF_MP_Y = 66
+
+MONSTER_HP_X=960-30
+MONSTER_HP_y=46
 
 FIRST_PARTY_MEMBER_X = 1799
 FIRST_PARTY_MEMBER_Y = 258
@@ -39,9 +43,10 @@ PARTY_VALID_B = 39
 PARTY_MEMBER_OFFSET_Y = 145
 
 repeat_always = False
+is_r_used=False
 
 SELECTED_RUNTIME_CONFIGURATION = 0  # None
-TIME_DELAY_BETWEEN_SKILLS = 1 # in seconds
+TIME_DELAY_BETWEEN_SKILLS = 0.1  # in seconds
 
 HP_R = 0
 HP_G = 0
@@ -50,7 +55,7 @@ MP_R = 0
 MP_G = 0
 MP_B = 0
 
-## END CONFIGURATION
+# END CONFIGURATION
 
 
 ### AutoHotPy Configuration Part ###
@@ -79,11 +84,11 @@ def alwaysLoopMacro(autohotpy, event):
         useAttackConfiguration(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 3:
         # Warrior
-        TIME_DELAY_BETWEEN_SKILLS = 0.4
+        TIME_DELAY_BETWEEN_SKILLS = 0.1
         useAttackConfiguration(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 4:
         # Mage
-        TIME_DELAY_BETWEEN_SKILLS = 1.4
+        TIME_DELAY_BETWEEN_SKILLS = 0.1
         useAttackConfiguration(autohotpy)
     elif SELECTED_RUNTIME_CONFIGURATION == 5:
         # Priest Heal
@@ -103,23 +108,26 @@ def alwaysLoopMacro(autohotpy, event):
 
 
 def enableDisableLoopMacro(autohotpy, event):
+    global start_time
     global repeat_always
+    global is_r_used
     global HP_R, HP_G, HP_B, MP_R, MP_G, MP_B
     HP_R, HP_G, HP_B = readPixel(SELF_HP_X, SELF_HP_Y)
     MP_R, MP_G, MP_B = readPixel(SELF_MP_X, SELF_MP_Y)
     print("Recorded HP values -> RGB: {}, {}, {}".format(HP_R, HP_G, HP_B))
     print("Recorded MP values -> RGB: {}, {}, {}".format(MP_R, MP_G, MP_B))
-    if repeat_always:
-        repeat_always = False
-    else:
+    
+    repeat_always =not(repeat_always)
+    is_r_used=False
+
         # let's enable it, and then we call it for the first time, so it starts running as soon as possible
-        repeat_always = True
+    if repeat_always:
         alwaysLoopMacro(autohotpy, event)
 
 
 ### END AutoHotPy Configuration Part ###
 
-### Preset Configurations for all classes
+# Preset Configurations for all classes
 
 def priestHeal(autohotpy):
     # Discover how many people in the party atm
@@ -135,32 +143,48 @@ def priestHeal(autohotpy):
 
     # Detect low hps and heal them
     for i in range(0, len(CURRENT_PARTY)):
-        checkPartyMemberHealth(autohotpy, CURRENT_PARTY[i][0], CURRENT_PARTY[i][1])
+        checkPartyMemberHealth(
+            autohotpy, CURRENT_PARTY[i][0], CURRENT_PARTY[i][1])
         time.sleep(0.4)
-        # Recover yourself
+        # Recover yourselfz
         checkHealth(autohotpy)
         checkMana(autohotpy)
 
 
 def useAttackConfiguration(autohotpy):
     global TIME_DELAY_BETWEEN_SKILLS
-    for skillPage, skillArray in ACTIVE_SKILL_PAGES.items():
-        useSkill(autohotpy, skillPage)
-        for i in range(0, len(skillArray)):
-            useSkill(autohotpy, 'z')
-            useSkill(autohotpy, skillArray[i])
-            if ENABLE_R_HITS:
-                time.sleep(0.1)
-                useSkill(autohotpy, 'r')
-            time.sleep(TIME_DELAY_BETWEEN_SKILLS)
+    global start_time
+    global is_r_used
 
     checkHealth(autohotpy)
     checkMana(autohotpy)
+    for skillPage, skillArray in ACTIVE_SKILL_PAGES.items():
+        useSkill(autohotpy, skillPage)
+        for i in range(0, len(skillArray)):
+            
+            useSkill(autohotpy, 'z')
+            useSkill(autohotpy, skillArray[i])
+            if ENABLE_R_HITS:
+                isMonsterHpLow=checkMonsterHealtLow()
+            
+                if (not isMonsterHpLow and not is_r_used):
+                    is_r_used=True
+                    time.sleep(0.1)
+                    useSkill(autohotpy, 'r')
+
+                if(isMonsterHpLow):
+                    is_r_used=False
+                    
+            time.sleep(TIME_DELAY_BETWEEN_SKILLS)
+            print(time.time()-start_time);
+            
 
 
-### END Preset Configurations for all classes
 
-### In-Game Helper functions
+
+# END Preset Configurations for all classes
+
+# In-Game Helper functionssz
 
 
 def getPressByKey(autohotpy, key):
@@ -183,6 +207,7 @@ def getPressByKey(autohotpy, key):
         'x': autohotpy.X,
         'u': autohotpy.U,
         'r': autohotpy.R,
+        'e': autohotpy.E,
         'F1': autohotpy.F1,
         'F2': autohotpy.F2,
         'F3': autohotpy.F3,
@@ -196,7 +221,8 @@ def getPressByKey(autohotpy, key):
 
 def click(autohotpy, x, y):
     autohotpy.moveMouseToPosition(x, y)
-    stroke = InterceptionMouseStroke()  # I highly suggest you to open InterceptionWrapper to read which attributes this class has
+    # I highly suggest you to open InterceptionWrapper to read which attributes this class has
+    stroke = InterceptionMouseStroke()
 
     # To simulate a mouse click we manually have to press down, and release the buttons we want.
     stroke.state = InterceptionMouseState.INTERCEPTION_MOUSE_LEFT_BUTTON_DOWN
@@ -219,16 +245,25 @@ def readPixel(x, y):
     r, g, b = rgbint2rgbtuple(color)
     return r, g, b
 
+def checkMonsterHealtLow():
+    global HP_R
+    x, y = MONSTER_HP_X, MONSTER_HP_y
+    r, g, b = readPixel(x, y)
+    if(r+10<HP_R):
+        return True
+    else:
+        return False
 
 def checkMana(autohotpy):
     global MP_R, MP_G, MP_B
     x, y = SELF_MP_X, SELF_MP_Y
-    r, g, b = readPixel(x,y)
-    print("Checking mana with RGB: {}, {}, {} against {}, {}, {}".format(r,g,b, MP_R, MP_G, MP_B))
+    r, g, b = readPixel(x, y)
+    # print("Checking mana with RGB: {}, {}, {} against {}, {}, {}".format(r, g, b, MP_R, MP_G, MP_B))
     if r == MP_R and g == MP_G and b == MP_B:
-        print("MP is above 35%")
+         print("\n")
+     #   print("MP is above 35%")
     else:
-        print("Using MP with KEY {}".format(MANA_POT_KEY))
+    #    print("Using MP with KEY {}".format(MANA_POT_KEY))
         useSkill(autohotpy, MANA_POT_KEY)
 
 
@@ -236,11 +271,12 @@ def checkHealth(autohotpy):
     global HP_R, HP_G, HP_B
     x, y = SELF_HP_X, SELF_HP_Y
     r, g, b = readPixel(x, y)
-    print("Checking health with RGB: {}, {}, {} against {}, {}, {}".format(r,g,b, HP_R, HP_G, HP_B))
+    #print("Checking health with RGB: {}, {}, {} against {}, {}, {}".format( r, g, b, HP_R, HP_G, HP_B))
     if r == HP_R and g == HP_G and b == HP_B:
-        print("HP is above 40%")
+         print("\n")
+       # print("HP is above 40%")
     else:
-        print("Using HP with KEY {}".format(HEALING_POT_KEY))
+      #  print("Using HP with KEY {}".format(HEALING_POT_KEY))
         useSkill(autohotpy, HEALING_POT_KEY)
 
 
@@ -248,7 +284,8 @@ def checkPartyMemberHealth(autohotpy, x, y):
     color = win32gui.GetPixel(win32gui.GetDC(win32gui.GetActiveWindow()), x, y)
     r, g, b = rgbint2rgbtuple(color)
     if r < 75:
-        print("Party member [{},{}] is at RGB: {}, {}, {}".format(x, y, r, g, b))
+        print("Party member [{},{}] is at RGB: {}, {}, {}".format(
+            x, y, r, g, b))
         click(autohotpy, x, y)
         keyToPress = getPressByKey(autohotpy, HEAL_PARTY_MEMBER_KEY)
         keyToPress.press()
@@ -261,14 +298,16 @@ def rgbint2rgbtuple(RGBint):
     return (red, green, blue)
 
 
-### END In-Game Helper functions
+# END In-Game Helper functions
 
-### Pre-configuration
+# Pre-configuration
 def displayOptions():
+    global start_time
+    start_time=time.time()
     return int(input("1: Archer\n2: Asas\n3: Warrior\n4: Mage\n5: Priest Heal\n6: Only auto hp/mp"))
 
 
-### END Pre-configuration
+# END Pre-configuration
 
 if __name__ == "__main__":
     auto = AutoHotPy()
